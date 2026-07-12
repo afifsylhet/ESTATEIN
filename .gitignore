@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files (never commit secrets)
+.env
+.env.*
+client/.env
+client/.env.*
+server/.env
+server/.env.*
+
+# Keep example env templates in git
+!client/.env.example
+!server/.env.example
+
+# Build outputs
+client/.next/
+client/out/
+client/build/
+server/dist/
+coverage/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
