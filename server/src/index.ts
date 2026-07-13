@@ -1,6 +1,6 @@
 import http from 'http';
 import { inspect } from 'util';
-import { createApp } from './app';
+import { app } from './app';
 import { env } from './config/env';
 import { connectDB, disconnectDB } from './config/db';
 import { verifyEmailConnection } from './utils/mailer';
@@ -68,7 +68,6 @@ function attachProcessHandlers(): void {
 async function bootstrap() {
   await connectDB();
 
-  const app = createApp();
   server = http.createServer(app);
 
   server.listen(env.PORT, () => {
@@ -80,24 +79,28 @@ async function bootstrap() {
   void verifyEmailConnection();
 }
 
-attachProcessHandlers();
+if (env.NODE_ENV === 'development') {
+  attachProcessHandlers();
 
-bootstrap().catch(async (err) => {
-  // eslint-disable-next-line no-console
-  console.error('❌ Failed to start server:', err);
-  if (server) {
-    await new Promise<void>((resolve) => {
-      server!.close(async () => {
-        await disconnectDB();
-        resolve();
+  bootstrap().catch(async (err) => {
+    // eslint-disable-next-line no-console
+    console.error('❌ Failed to start server:', err);
+    if (server) {
+      await new Promise<void>((resolve) => {
+        server!.close(async () => {
+          await disconnectDB();
+          resolve();
+        });
       });
-    });
-  } else {
-    try {
-      await disconnectDB();
-    } catch {
-      // noop
+    } else {
+      try {
+        await disconnectDB();
+      } catch {
+        // noop
+      }
     }
-  }
-  process.exit(1);
-});
+    process.exit(1);
+  });
+}
+
+export { app };
