@@ -3,7 +3,8 @@
 import { useAuthStore } from '@/store/auth-store';
 import type { ApiFailure, ApiSuccess } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+// In production, default to same-origin so browser requests flow through Next rewrites.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
 export class ApiClientError extends Error {
   status: number;

@@ -4,14 +4,20 @@ import type { NextConfig } from 'next';
 // go to same-origin `/api/v1/*` and are proxied here (see rewrites below), so
 // the httpOnly refresh cookie is stored on the Next.js origin and is readable
 // by Server Components via `cookies()`.
-const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN ?? 'http://localhost:5000';
+const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN;
+
+if (process.env.NODE_ENV === 'production' && !BACKEND_ORIGIN) {
+  throw new Error('Missing BACKEND_ORIGIN in production environment.');
+}
+
+const RESOLVED_BACKEND_ORIGIN = BACKEND_ORIGIN ?? 'http://localhost:5000';
 
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
         source: '/api/v1/:path*',
-        destination: `${BACKEND_ORIGIN}/api/v1/:path*`,
+        destination: `${RESOLVED_BACKEND_ORIGIN}/api/v1/:path*`,
       },
     ];
   },
