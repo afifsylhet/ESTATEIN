@@ -2,9 +2,15 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import type { ApiSuccess, User } from '@/types';
 
-// Server-only helpers call the backend origin directly (the `/api/v1` proxy is
-// browser-only). BACKEND_ORIGIN is the same value used by next.config rewrites.
-const API_URL = `${process.env.BACKEND_ORIGIN ?? 'http://localhost:5000'}/api/v1`;
+function getApiUrl(): string {
+  const explicitSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  if (explicitSiteUrl) return `${explicitSiteUrl}/api/v1`;
+
+  const vercelUrl = process.env.VERCEL_URL?.replace(/\/$/, '');
+  if (vercelUrl) return `https://${vercelUrl}/api/v1`;
+
+  return 'http://localhost:3000/api/v1';
+}
 
 export interface ServerSession {
   user: User;
@@ -17,6 +23,7 @@ export interface ServerSession {
  * issues a fresh short-lived access token. Returns null when the visitor is logged out.
  */
 export async function getServerSession(): Promise<ServerSession | null> {
+  const API_URL = getApiUrl();
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get('refreshToken')?.value;
   if (!refreshToken) return null;
@@ -41,6 +48,7 @@ export async function serverApiFetch<T>(
   accessToken: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const API_URL = getApiUrl();
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
